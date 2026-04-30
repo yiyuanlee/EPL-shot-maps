@@ -19,8 +19,10 @@ import argparse
 import os
 import sys
 
-# 确保 src 在路径里
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+# 确保 src 和 data 在路径里
+root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, root)
+sys.path.insert(0, os.path.join(root, "src"))
 from eplshotmaps.plot import plot_shot_map, plot_efficiency_bar, plot_xg_goals_scatter
 
 

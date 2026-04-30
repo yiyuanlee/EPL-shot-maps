@@ -19,6 +19,7 @@ import os
 CURRENT_DIR = os.path.dirname(__file__)
 sys.path.insert(0, CURRENT_DIR)
 sys.path.insert(0, os.path.join(CURRENT_DIR, "src"))
+sys.path.insert(0, os.path.join(CURRENT_DIR, "data"))
 
 # ── Page Config ───────────────────────────────
 st.set_page_config(
