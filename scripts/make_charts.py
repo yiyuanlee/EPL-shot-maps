@@ -1,18 +1,17 @@
 """
 Generate EPL shot-efficiency charts.
 
-Supports two modes:
-  1. CSV mode  : --csv data/sample_shots.csv --player "Haaland"
-  2. Understat mode: --player "Haaland" --source understat [--season 2024]
+Supports:
+  1. Single player:   --player "Haaland" --source understat
+  2. Multi player:    --players "Haaland,Salah,Isak" --source understat
+  3. CSV mode:        --csv data/sample_shots.csv --player "Haaland"
 
 Usage:
-  # From CSV
-  python scripts/make_charts.py --csv data/shots.csv --player "Erling Haaland"
-
-  # From Understat (auto-fetch)
-  python scripts/make_charts.py --player "Erling Haaland" --source understat
+  # Single player
   python scripts/make_charts.py --player "Erling Haaland" --source understat --season 2024
-  python scripts/make_charts.py --csv data/shots.csv --min-shots 10
+
+  # Multi player comparison
+  python scripts/make_charts.py --players "Erling Haaland,Mohamed Salah,Alexander Isak" --source understat --season 2024
 """
 
 import argparse
@@ -23,77 +22,92 @@ import sys
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, root)
 sys.path.insert(0, os.path.join(root, "src"))
-from eplshotmaps.plot import plot_shot_map, plot_efficiency_bar, plot_xg_goals_scatter
+
+from eplshotmaps.plot import (
+    plot_shot_map, plot_efficiency_bar, plot_xg_goals_scatter,
+    plot_comparison_shot_maps, plot_comparison_bar,
+    plot_comparison_scatter, plot_comparison_heatmap,
+)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Generate EPL shot-efficiency charts")
-    parser.add_argument("--csv", help="Path to shot-level CSV (CSV mode)")
-    parser.add_argument("--player", help="Player name to generate shot map for")
+    parser.add_argument("--csv", help="Path to shot-level CSV (CSV mode, single player only)")
+    parser.add_argument("--player", help="Single player name")
+    parser.add_argument("--players", help="Comma-separated multi-player names (comparison mode)")
     parser.add_argument("--min-shots", type=int, default=10, help="Minimum shots for efficiency charts")
     parser.add_argument("--outdir", default="out", help="Output directory")
     parser.add_argument(
-        "--source",
-        choices=["csv", "understat"],
-        default="csv",
-        help="Data source: csv (default) or understat (auto-fetch)",
+        "--source", choices=["csv", "understat"], default="csv",
+        help="Data source: csv or understat (auto-fetch)",
     )
     parser.add_argument(
-        "--season",
-        type=int,
-        default=2024,
-        help="Season start year (e.g. 2024 for 2024/25), used only with --source understat",
+        "--season", type=int, default=2024,
+        help="Season start year (e.g. 2024 for 2024/25)",
     )
     args = parser.parse_args()
 
     import pandas as pd
+    os.makedirs(args.outdir, exist_ok=True)
 
-    # ── Understat 模式 ─────────────────────────────
+    # ── 多球员对比模式 ─────────────────────────────
+    if args.players:
+        player_list = [p.strip() for p in args.players.split(",")]
+        print(f"[Understat] 正在批量获取 {len(player_list)} 位球员数据...")
+
+        from data.understat_api import fetch_multi_player_shots
+        df_dict = fetch_multi_player_shots(player_list, season=args.season)
+
+        # 对比图 1：并排射门图
+        compare_shotmap_path = f"{args.outdir}/compare_shotmaps.png"
+        print(f"[Chart] 射门对比图 → {compare_shotmap_path}")
+        plot_comparison_shot_maps(df_dict, out_path=compare_shotmap_path)
+
+        # 对比图 2：4项指标柱状图
+        compare_bar_path = f"{args.outdir}/compare_bar.png"
+        print(f"[Chart] 指标对比图 → {compare_bar_path}")
+        plot_comparison_bar(df_dict, out_path=compare_bar_path)
+
+        # 对比图 3：xG vs Goals
+        compare_scatter_path = f"{args.outdir}/compare_xg_scatter.png"
+        print(f"[Chart] xG对比图 → {compare_scatter_path}")
+        plot_comparison_scatter(df_dict, out_path=compare_scatter_path)
+
+        # 对比图 4：热力图
+        compare_heatmap_path = f"{args.outdir}/compare_heatmap.png"
+        print(f"[Chart] 热力图 → {compare_heatmap_path}")
+        plot_comparison_heatmap(df_dict, out_path=compare_heatmap_path)
+
+        print(f"\nDone! {len(player_list)} players comparison charts saved to {args.outdir}/")
+        return
+
+    # ── 单球员模式 ────────────────────────────────
+    if not args.player and args.source == "csv":
+        raise SystemExit("Error: --player is required for CSV mode")
+
     if args.source == "understat":
-        if not args.player:
-            raise SystemExit("Error: --player is required when using --source understat")
-
-        print(f"[Understat] 正在获取 {args.player} ({args.season}/{args.season+1}) 的数据...")
         from data.understat_api import fetch_player_shots
-
         df = fetch_player_shots(args.player, season=args.season)
         print(f"[Understat] 获取到 {len(df)} 脚射门")
-
-    # ── CSV 模式 ──────────────────────────────────
     else:
         if not args.csv:
-            raise SystemExit("Error: --csv is required when using --source csv")
+            raise SystemExit("Error: --csv is required for CSV mode")
         df = pd.read_csv(args.csv)
 
-    # 校验列
     required = {"player", "team", "minute", "x", "y", "xg", "outcome"}
     missing = required - set(df.columns)
     if missing:
         raise SystemExit(f"Missing required columns: {missing}")
 
-    os.makedirs(args.outdir, exist_ok=True)
+    safe_name = args.player.replace(" ", "_")
+    out_path = f"{args.outdir}/shotmap_{safe_name}.png"
+    print(f"[Chart] 射门图 → {out_path}")
+    plot_shot_map(df, player=args.player, out_path=out_path)
 
-    # ── 射门图 ────────────────────────────────────
-    if args.player:
-        safe_name = args.player.replace(" ", "_")
-        out_path = f"{args.outdir}/shotmap_{safe_name}.png"
-        print(f"[Chart] 射门图 → {out_path}")
-        plot_shot_map(df, player=args.player, out_path=out_path)
-    else:
-        # 生成 top 3 射门图
-        top3 = df.groupby("player").size().sort_values(ascending=False).head(3).index.tolist()
-        for p in top3:
-            safe_name = p.replace(" ", "_")
-            out_path = f"{args.outdir}/shotmap_{safe_name}.png"
-            plot_shot_map(df, player=p, out_path=out_path)
-            print(f"[Chart] 射门图 ({p}) → {out_path}")
-
-    # ── 效率柱状图 ────────────────────────────────
     bar_path = f"{args.outdir}/efficiency_bar.png"
     print(f"[Chart] 效率图 → {bar_path}")
     plot_efficiency_bar(df, min_shots=args.min_shots, out_path=bar_path)
 
-    # ── xG 散点图 ─────────────────────────────────
     scatter_path = f"{args.outdir}/xg_goals_scatter.png"
     print(f"[Chart] xG散点图 → {scatter_path}")
     plot_xg_goals_scatter(df, out_path=scatter_path, min_shots=args.min_shots)

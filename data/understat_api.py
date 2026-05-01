@@ -2,11 +2,12 @@
 Understat API — 使用 understatAPI 库获取球员射门数据
 
 Usage:
-    from data.understat_api import fetch_player_shots, search_player
+    from data.understat_api import fetch_player_shots, fetch_multi_player_shots, search_player
     df = fetch_player_shots("Erling Haaland", season=2024)
+    df_dict = fetch_multi_player_shots(["Haaland", "Salah", "Isak"], season=2024)
 """
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict
 
 import pandas as pd
 
@@ -17,7 +18,6 @@ PITCH_WIDTH = 68.0
 def search_player(player_name: str, league: str = "EPL", season: str = "2024") -> Optional[Tuple[str, str]]:
     """
     搜索球员，返回 (player_id, player_name)。
-    需要 league 和 season 来定位球员列表。
     """
     from understatapi import UnderstatClient
 
@@ -30,21 +30,15 @@ def search_player(player_name: str, league: str = "EPL", season: str = "2024") -
     return None
 
 
-def fetch_player_shots(player_name: str, season: int = 2024) -> pd.DataFrame:
+def _fetch_single_player_shots(player_name: str, season: int) -> pd.DataFrame:
     """
-    输入球员名字（英文），自动搜索 + 获取射门数据，返回标准 DataFrame。
-
-    列：player, team, minute, x, y, xg, outcome, is_penalty, situation, shotType
-
-    Usage:
-        df = fetch_player_shots("Erling Haaland", season=2024)
+    内部函数：获取单个球员的射门数据（不缓存，季度隔离）。
     """
     from understatapi import UnderstatClient
 
     season_str = str(season)
 
     with UnderstatClient() as understat:
-        # 1. 在 league 球员列表中搜索
         players = understat.league(league="EPL").get_player_data(season=season_str)
         player_id = None
         found_name = player_name
@@ -59,15 +53,12 @@ def fetch_player_shots(player_name: str, season: int = 2024) -> pd.DataFrame:
         if player_id is None:
             raise ValueError(f"未找到球员: {player_name}，请检查拼写（使用英文名）")
 
-        # 2. 获取射门数据（所有赛季）
         all_shots = understat.player(player=player_id).get_shot_data()
 
-    # 3. 过滤指定赛季
     shots = [s for s in all_shots if str(s.get("season")) == season_str]
     if not shots:
-        shots = all_shots  # 向前兼容
+        shots = all_shots
 
-    # 4. 标准化为 DataFrame
     rows = []
     for s in shots:
         try:
@@ -107,6 +98,43 @@ def fetch_player_shots(player_name: str, season: int = 2024) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def fetch_player_shots(player_name: str, season: int = 2024) -> pd.DataFrame:
+    """
+    输入球员名字（英文），自动搜索 + 获取射门数据，返回标准 DataFrame。
+
+    列：player, team, minute, x, y, xg, outcome, is_penalty, situation, shotType
+    """
+    return _fetch_single_player_shots(player_name, season)
+
+
+def fetch_multi_player_shots(player_names: list, season: int = 2024) -> Dict[str, pd.DataFrame]:
+    """
+    批量获取多个球员的射门数据。
+
+    参数：
+        player_names: 球员名字列表（英文），如 ["Erling Haaland", "Mohamed Salah"]
+        season: 赛季开始年份
+
+    返回：
+        Dict[player_name, DataFrame]，按输入顺序返回
+
+    Usage:
+        df_dict = fetch_multi_player_shots(["Erling Haaland", "Mohamed Salah", "Alexander Isak"], season=2024)
+        for name, df in df_dict.items():
+            print(f"{name}: {len(df)} shots")
+    """
+    result = {}
+    for name in player_names:
+        try:
+            df = _fetch_single_player_shots(name, season)
+            result[name] = df
+            print(f"[Understat] {name}: {len(df)} 脚射门")
+        except Exception as e:
+            print(f"[Understat] {name}: 获取失败 — {e}")
+            raise
+    return result
+
+
 def fetch_player_seasons(player_name: str, league: str = "EPL") -> list:
     """返回球员所有可用赛季列表。"""
     from understatapi import UnderstatClient
@@ -127,10 +155,6 @@ def fetch_player_seasons(player_name: str, league: str = "EPL") -> list:
         seasons = sorted(set(str(s.get("season", "")) for s in all_data if s.get("season")), reverse=True)
         return [{"season": s} for s in seasons]
 
-
-# ─────────────────────────────────────────────
-# 快捷测试
-# ─────────────────────────────────────────────
 
 if __name__ == "__main__":
     import sys
