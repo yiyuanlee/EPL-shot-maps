@@ -34,7 +34,7 @@ with st.sidebar:
     st.header("设置")
     season = st.selectbox(
         "选择赛季",
-        options=[2024, 2023, 2022, 2021, 2020],
+        options=[2025, 2024, 2023, 2022, 2021, 2020],
         index=0,
         format_func=lambda x: f"{x}/{x+1}",
     )
