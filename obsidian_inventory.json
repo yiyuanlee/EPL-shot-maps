@@ -1,0 +1,87 @@
+{
+  "files": [
+    {
+      "path": "CLAUDE.md",
+      "size": 2378,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\CLAUDE.md"
+    },
+    {
+      "path": "Clippings\\How to Speak Clearly & With Confidence  Matt Abrahams.md",
+      "size": 174087,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\Clippings\\How to Speak Clearly & With Confidence  Matt Abrahams.md"
+    },
+    {
+      "path": "index.md",
+      "size": 717,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\index.md"
+    },
+    {
+      "path": "llm-wiki.md",
+      "size": 11985,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\llm-wiki.md"
+    },
+    {
+      "path": "log.md",
+      "size": 1443,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\log.md"
+    },
+    {
+      "path": "raw\\我是如何快速学习一个领域的.md",
+      "size": 1518,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\raw\\我是如何快速学习一个领域的.md"
+    },
+    {
+      "path": "wiki\\GitHub项目.md",
+      "size": 1694,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\wiki\\GitHub项目.md"
+    },
+    {
+      "path": "wiki\\我是如何快速学习一个领域的.md",
+      "size": 1190,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\wiki\\我是如何快速学习一个领域的.md"
+    },
+    {
+      "path": "wiki\\投资-概览.md",
+      "size": 717,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\wiki\\投资-概览.md"
+    },
+    {
+      "path": "wiki\\曼联-概览.md",
+      "size": 435,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\wiki\\曼联-概览.md"
+    },
+    {
+      "path": "wiki\\编程技术.md",
+      "size": 315,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\wiki\\编程技术.md"
+    },
+    {
+      "path": "wiki\\股票研究方法论-PlainBagel.md",
+      "size": 2905,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\wiki\\股票研究方法论-PlainBagel.md"
+    },
+    {
+      "path": "创建链接.md",
+      "size": 0,
+      "full": "C:\\Users\\23150\\OneDrive\\文档\\Obsidian_1\\渊神智库\\创建链接.md"
+    }
+  ],
+  "content_map": {
+    "CLAUDE.md": {
+      "chars": 1305,
+      "preview": "# CLAUDE.md - 渊神智库维护指南\n\n> 本文件是 AI 维护此知识库的 schema，每次对话都会读取。\n\n## 核心理念\n\n渊神智库是一个**渐进式知识库**，由 AI 增量维护。核心思想：\n- **知识是一次性编译，持续保持最新**，而非每次提问都重新从原始资料检索\n- AI 负责所有繁琐的整理工作：总结、交叉引用、更新维护\n- 你负责：资料来源、探索方向、提问\n\n## 架构\n\n```\n渊神智库/\n├── 📁 wiki/          # AI 生成的页面（总结、实体页、概念页）\n├── 📁 raw/           # 原始资料（不可修改的源文档）\n├── 📁 log"
+    },
+    "index.md": {
+      "chars": 408,
+      "preview": "# 渊神智库 - 索引\n\n> 这是渊神智库的目录，记录所有页面和更新时间。\n\n## 📁 wiki/ (LLM 生成页面)\n- [[wiki/投资-概览]] - 个人投资概览，包含持仓数据\n- [[wiki/曼联-概览]] - 曼联俱乐部基本信息\n- [[wiki/编程技术]] - 技术栈和开发经验\n- [[wiki/股票研究方法论-PlainBagel]] - The Plain Bagel 股票分析六步法教程笔记\n- [[wiki/GitHub项目]] - yiyuanlee GitHub 公开项目索引\n- [[wiki/我是如何快速学习一个领域的]] - 小Lin说学习方法论：三步法框架\n"
+    },
+    "llm-wiki.md": {
+      "chars": 11923,
+      "preview": "# LLM Wiki\n\nA pattern for building personal knowledge bases using LLMs.\n\nThis is an idea file, it is designed to be copy pasted to your own LLM Agent (e.g. OpenAI Codex, Claude Code, OpenCode / Pi, or etc.). Its goal is to communicate the high level idea, but your agent will build out the specifics "
+    },
+    "log.md": {
+      "chars": 925,
+      "preview": "# 渊神智库 - 操作日志\n\n> 按时间顺序记录所有操作。格式：`## [日期] 操作 | 摘要`\n\n## [2026-04-30] init | 初始化渊神智库\n- 创建目录结构：wiki/, raw/, log/, 投资/, 曼联/, 编程/, 留学/\n- 创建 index.md（索引）\n- 创建 CLAUDE.md（schema）\n- 创建 log.md（操作日志）\n\n---\n*本知识库基于 LLM Wiki 模式构建*\n\n## [2026-04-30] ingest | llm-wiki.md\n- 读取 llm-wiki.md 原始文章\n- 根据 LLM Wiki 架构初始化知识库\n-"
+    }
+  }
+}
