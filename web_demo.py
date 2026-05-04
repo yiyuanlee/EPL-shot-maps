@@ -21,7 +21,13 @@ st.set_page_config(
 st.title("⚽ EPL Shot Map Generator")
 st.markdown("输入球员名字，从 Understat 自动获取射门数据并生成可视化")
 
-# ── Load data layer ──────────────────────────────────────
+# ── Situation filter (shared helper) ─────────────────────────────
+def filter_situation(df, situation):
+    if situation == "All":
+        return df
+    return df[df["situation"] == situation]
+
+
 @st.cache_data(ttl=3600)
 def get_all_players_cached():
     from data.understat_api import get_all_players
@@ -79,6 +85,11 @@ with st.sidebar:
         index=0,
         format_func=lambda x: f"{x}/{x+1}",
     )
+    situation_filter = st.selectbox(
+        "Shot Situation",
+        options=["All", "Open Play", "Penalty", "Free Kick", "From Corner"],
+        help="Filter shots by how they were created",
+    )
     st.markdown("---")
     if st.button("Clear cache", use_container_width=True):
         from data.understat_api import clear_cache
@@ -126,6 +137,7 @@ if mode == "Single Player":
             try:
                 from data.understat_api import fetch_player_shots
                 df = fetch_player_shots(player_name.strip(), season=season)
+                df = filter_situation(df, situation_filter)
 
                 shots_count = len(df)
                 goals_count = (df["outcome"] == "goal").sum()
